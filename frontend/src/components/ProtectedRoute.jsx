@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import jwt_decode from "jwt-decode";
 import api from "../api";
 import { REFRESH_TOKEN, ACCESS_TOKEN } from "../constants";
 import { useState, useEffect } from "react";
@@ -32,8 +32,8 @@ function ProtectedRoute({ children }) {
       setIsAuthorized(false);
       return;
     }
-
-      const decoded = jwtDecode(token);
+    
+      const decoded = jwt_decode(token);
       const tokenExpiration = decoded.exp
       const now = Date.now() / 1000;
 
