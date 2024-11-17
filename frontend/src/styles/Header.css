@@ -1,0 +1,72 @@
+/* Header Styles */
+.header {
+    display: flex;
+    justify-content: space-between; /* Space between left and right sections */
+    align-items: center;
+    background-color: #f1f3f4;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid #dadce0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+/* Left Section: Logo + Title + Button */
+.header-left {
+    display: flex;
+    align-items: center;
+}
+
+/* Right Section: Logout Button */
+.header-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Document Icon */
+.header-icon {
+    font-size: 1.8rem;
+    color: #1a73e8;
+    margin-right: 10px;
+}
+
+/* Title */
+.header-title {
+    font-size: 1.5rem;
+    color: #202124;
+    font-weight: 500;
+    margin: 0 20px 0 0;
+}
+
+/* Button: Notes and Logout */
+.header-button {
+    background-color: #1a73e8;
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.header-button:hover {
+    background-color: #1667c9;
+    transform: translateY(-2px);
+}
+
+.header-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.4);
+}
+
+/* Logout Button Specific */
+.logout-button {
+    background-color: #ea4335; /* Red Google button color */
+}
+
+.logout-button:hover {
+    background-color: #d93025; /* Darker red on hover */
+}

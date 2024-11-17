@@ -1,0 +1,36 @@
+/* documentEditor.css */
+.document-editor {
+  background-color: #f9fbfd;
+  min-height: calc(100vh - 130px);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+  
+  .doc-button {
+    background-color: #f0f0f0;
+    border: 1px solid #d0d0d0;
+    padding: 5px 12px;
+    border-radius: 5px;
+    margin-right: 10px;
+    cursor: pointer;
+  }
+  
+  .doc-button:hover {
+    background-color: #e0e0e0;
+  }
+  
+  .editable-area {
+    width: 8.5in;
+    min-height: 11in;
+    padding: 1in;
+    margin: 24px;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(60,64,67,0.3);
+    border: none;
+    outline: none;
+    font-family: Arial, sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
