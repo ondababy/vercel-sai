@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Grid, Card, CardContent, Typography, Button, LinearProgress, Collapse, Slider, IconButton, Box, Container
+  Grid, Card, CardContent, Typography, Button, Box, Container, Snackbar, Alert, Switch
 } from '@mui/material';
-import { Dashboard as DashboardIcon, FileDownload as FileDownloadIcon, PictureAsPdf as PictureAsPdfIcon, CameraAlt as CameraAltIcon, Brightness6 as Brightness6Icon } from '@mui/icons-material';
+import { FileDownload as FileDownloadIcon, PictureAsPdf as PictureAsPdfIcon } from '@mui/icons-material';
 import { BarChart } from '@mui/x-charts';
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import { fetchTotalNotes, fetchTotalUsers, fetchNotesAllMonths, fetchUsersAllMonths } from '../api';
-import { useNavigate } from 'react-router-dom';
 import '../styles/admin.css';
 
 const googleDocsColors = {
@@ -15,43 +13,30 @@ const googleDocsColors = {
   green: '#34a853',
 };
 
-function AdminDashboard() {
+const AdminDashboard = () => {
   const [totalNotes, setTotalNotes] = useState(null);
   const [totalUsers, setTotalUsers] = useState(null);
   const [notesAllMonths, setNotesAllMonths] = useState([]);
   const [usersAllMonths, setUsersAllMonths] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [openCharts, setOpenCharts] = useState(false);
-  const [brightness, setBrightness] = useState(100);
-  
-  const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(true);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev === 100) {
-          clearInterval(timer);
-          setLoading(false);
-          return 100;
-        }
-        return Math.min(prev + 10, 100);
-      });
-    }, 500);
-
-    fetchTotalNotes().then(response => setTotalNotes(response.total_notes)).catch(console.error);
-    fetchTotalUsers().then(response => setTotalUsers(response.total_users)).catch(console.error);
-    fetchNotesAllMonths().then(response => setNotesAllMonths(response || [])).catch(console.error);
-    fetchUsersAllMonths().then(response => setUsersAllMonths(response || [])).catch(console.error);
-
-    return () => clearInterval(timer);
+    getNotes();
+    getUsers();
   }, []);
 
-  useEffect(() => {
-    document.body.style.filter = `brightness(${brightness}%)`;
-  }, [brightness]);
+  const getNotes = () => {
+    fetchTotalNotes().then(response => setTotalNotes(response.total_notes)).catch(console.error);
+    fetchNotesAllMonths().then(response => setNotesAllMonths(response || [])).catch(console.error);
+  };
 
-  const handleToggleCharts = () => setOpenCharts(!openCharts);
+  const getUsers = () => {
+    fetchTotalUsers().then(response => setTotalUsers(response.total_users)).catch(console.error);
+    fetchUsersAllMonths().then(response => setUsersAllMonths(response || [])).catch(console.error);
+  };
 
   const handleExportData = () => {
     const csvData = `Total Notes,${totalNotes}\nTotal Users,${totalUsers}\n`;
@@ -81,71 +66,130 @@ function AdminDashboard() {
     series: [{ data: usersAllMonths.map(month => month.count), color: googleDocsColors.green }]
   };
 
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+  };
+
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.default', color: 'text.primary', minHeight: '100vh' }}>
-      <Box component="aside" sx={{ width: 240, bgcolor: 'primary.dark', py: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Button variant="contained" startIcon={<DashboardIcon />} onClick={() => navigate('/admin')} fullWidth>Dashboard</Button>
-        <Button variant="contained" startIcon={<FileDownloadIcon />} onClick={handleExportData} fullWidth>Export Data</Button>
-        <Button variant="contained" startIcon={<PictureAsPdfIcon />} onClick={handleExportPDF} fullWidth>Export PDF</Button>
-        <IconButton color="inherit" onClick={() => setBrightness(brightness === 100 ? 50 : 100)}>
-          <Brightness6Icon />
-        </IconButton>
-        <Slider value={brightness} onChange={(e, val) => setBrightness(val)} min={0} max={200} />
-      </Box>
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100vh',
+      backgroundColor: darkMode ? '#0b192f' : '#f0f4f8',
+      color: darkMode ? '#fff' : '#333',
+      transition: 'background-color 0.3s, color 0.3s',
+      padding: 4,
+    }}>
+      <Container maxWidth="lg">
+        {/* Dark Mode Toggle */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2 }}>
+          <Switch
+            checked={darkMode}
+            onChange={toggleDarkMode}
+            color="primary"
+            inputProps={{ "aria-label": "dark mode toggle" }}
+          />
+        </Box>
 
-      <Container maxWidth="lg" sx={{ p: 4 }}>
-        {loading ? (
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography variant="h5">Loading Dashboard...</Typography>
-            <LinearProgress variant="determinate" value={progress} sx={{ my: 2 }} />
-          </Box>
-        ) : (
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: 'background.paper', borderColor: 'primary.light' }}>
-                <CardContent>
-                  <Typography variant="h6" color="text.secondary">Total Notes</Typography>
-                  <Typography variant="h4" color="primary">{totalNotes}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <Card variant="outlined" sx={{ bgcolor: 'background.paper', borderColor: 'primary.light' }}>
-                <CardContent>
-                  <Typography variant="h6" color="text.secondary">Total Users</Typography>
-                  <Typography variant="h4" color="primary">{totalUsers}</Typography>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            <Grid item xs={12}>
-              <Button variant="contained" color="primary" onClick={handleToggleCharts} fullWidth>{openCharts ? 'Hide Charts' : 'Show Charts'}</Button>
-              <Collapse in={openCharts}>
-                <Grid container spacing={3} sx={{ mt: 2 }}>
-                  <Grid item xs={12} md={6}>
-                    <Card variant="outlined" sx={{ bgcolor: 'background.paper', borderColor: 'primary.light' }}>
-                      <CardContent>
-                        <Typography variant="h6">Total Notes Chart</Typography>
-                        <BarChart xAxis={notesChartData.xAxis} series={notesChartData.series} height={200} width={350} />
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Card variant="outlined" sx={{ bgcolor: 'background.paper', borderColor: 'primary.light' }}>
-                      <CardContent>
-                        <Typography variant="h6">Total Users Chart</Typography>
-                        <BarChart xAxis={usersChartData.xAxis} series={usersChartData.series} height={200} width={350} />
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                </Grid>
-              </Collapse>
-            </Grid>
+        <Grid container spacing={4} sx={{ marginBottom: 3 }}>
+          {/* Total Notes and Total Users Cards */}
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined" sx={{
+              bgcolor: darkMode ? '#172a45' : '#ffffff',
+              borderColor: darkMode ? '#475569' : '#ddd',
+              padding: 3,
+              boxShadow: darkMode ? '0 4px 12px rgba(0, 0, 0, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: darkMode ? '#0ea5e9' : '#1a73e8' }}>Total Notes</Typography>
+                <Typography variant="h4">{totalNotes}</Typography>
+              </CardContent>
+            </Card>
           </Grid>
-        )}
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined" sx={{
+              bgcolor: darkMode ? '#172a45' : '#ffffff',
+              borderColor: darkMode ? '#475569' : '#ddd',
+              padding: 3,
+              boxShadow: darkMode ? '0 4px 12px rgba(0, 0, 0, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: darkMode ? '#0ea5e9' : '#1a73e8' }}>Total Users</Typography>
+                <Typography variant="h4">{totalUsers}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Charts */}
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined" sx={{
+              bgcolor: darkMode ? '#172a45' : '#ffffff',
+              borderColor: darkMode ? '#475569' : '#ddd',
+              padding: 3,
+              boxShadow: darkMode ? '0 4px 12px rgba(0, 0, 0, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: darkMode ? '#0ea5e9' : '#1a73e8' }}>Total Notes Chart</Typography>
+                <BarChart xAxis={notesChartData.xAxis} series={notesChartData.series} height={300} width={450} />
+              </CardContent>
+            </Card>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Card variant="outlined" sx={{
+              bgcolor: darkMode ? '#172a45' : '#ffffff',
+              borderColor: darkMode ? '#475569' : '#ddd',
+              padding: 3,
+              boxShadow: darkMode ? '0 4px 12px rgba(0, 0, 0, 0.6)' : '0 4px 12px rgba(0, 0, 0, 0.1)',
+            }}>
+              <CardContent>
+                <Typography variant="h6" sx={{ color: darkMode ? '#0ea5e9' : '#1a73e8' }}>Total Users Chart</Typography>
+                <BarChart xAxis={usersChartData.xAxis} series={usersChartData.series} height={300} width={450} />
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+
+        {/* Export Buttons */}
+        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
+          <Button
+            variant="contained"
+            startIcon={<FileDownloadIcon />}
+            onClick={handleExportData}
+            sx={{
+              backgroundColor: '#0ea5e9',
+              '&:hover': { backgroundColor: '#0284c7' },
+              flex: 1,
+              margin: '0 1rem',
+            }}
+          >
+            Export Data
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={handleExportPDF}
+            sx={{
+              backgroundColor: '#0ea5e9',
+              '&:hover': { backgroundColor: '#0284c7' },
+              flex: 1,
+              margin: '0 1rem',
+            }}
+          >
+            Export PDF
+          </Button>
+        </Grid>
       </Container>
+
+      {/* Snackbar for Notifications */}
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={() => setSnackbarOpen(false)}>
+        <Alert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
-}
+};
 
 export default AdminDashboard;
