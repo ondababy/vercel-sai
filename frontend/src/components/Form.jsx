@@ -21,7 +21,8 @@ import PolicyIcon from "@mui/icons-material/Policy";
 import jwt_decode from "jwt-decode";
 import api from "../api";
 import { ACCESS_TOKEN, REFRESH_TOKEN } from "../constants";
-import LoadingIndicator from "./LoadingIndicator"; // Import your LoadingIndicator component
+import LoadingIndicator from "./LoadingIndicator"; 
+import html2canvas from "html2canvas";
 
 const darkBackgroundStyle = {
   background: "radial-gradient(circle, #0b192f, #172a45)",
